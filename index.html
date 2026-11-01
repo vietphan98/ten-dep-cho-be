@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tên Đẹp Cho Bé - Thần Số Học</title>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Tên Đẹp Cho Bé</h1>
+            <p class="subtitle">Gợi ý tên theo thần số học</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="goiy">Gợi ý tên</button>
+            <button class="tab-btn" data-tab="sosanh">So sánh tên</button>
+            <button class="tab-btn" data-tab="yeuthich">Yêu thích</button>
+        </div>
+
+        <div id="tab-goiy" class="tab-content active">
+            <div class="input-group">
+                <div class="input-row">
+                    <div class="input-field">
+                        <label for="ho-bo">Họ bố</label>
+                        <input type="text" id="ho-bo" placeholder="Nguyễn">
+                    </div>
+                    <div class="input-field">
+                        <label for="ho-me">Họ mẹ</label>
+                        <input type="text" id="ho-me" placeholder="Trần">
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div class="input-field">
+                        <label for="dob">Ngày sinh/dự định</label>
+                        <input type="date" id="dob" value="2026-12-15">
+                    </div>
+                    <div class="input-field">
+                        <label for="gender">Giới tính</label>
+                        <select id="gender">
+                            <option value="nam">Nam</option>
+                            <option value="nu" selected>Nữ</option>
+                            <option value="both">Không xác định</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button id="btn-goiy" class="btn-primary">Gợi ý tên</button>
+                    <button id="btn-mau" class="btn-secondary">Điền mẫu</button>
+                </div>
+            </div>
+
+            <div id="results" class="results-grid"></div>
+        </div>
+
+        <div id="tab-sosanh" class="tab-content">
+            <div id="compare-chart-container" class="chart-container">
+                <canvas id="compare-chart"></canvas>
+            </div>
+            <button id="btn-compare" class="btn-primary" disabled>So sánh tên đã chọn</button>
+        </div>
+
+        <div id="tab-yeuthich" class="tab-content">
+            <div id="favorites" class="results-grid"></div>
+            <p id="no-favorites" class="empty-state">Bạn chưa có tên yêu thích nào.</p>
+        </div>
+    </div>
+
+    <div id="detail-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="share-card" class="share-card">
+                <div class="card-header">
+                    <h2 id="modal-name"></h2>
+                    <div class="hanh-badge" id="modal-hanh"></div>
+                </div>
+                <div class="card-body">
+                    <div class="gauge-container">
+                        <svg class="gauge" viewBox="0 0 200 100"><defs><linearGradient id="gauge-gradient" x1="0" x2="1"><stop offset="0" stop-color="#ffd86f"/><stop offset="1" stop-color="#ff6fd8"/></linearGradient></defs>
+                            <path class="gauge-bg" d="M20,90 A80,80 0 0,1 180,90"></path>
+                            <path class="gauge-fill" d="M20,90 A80,80 0 0,1 180,90" stroke-dasharray="0, 251.3"></path>
+                            <text class="gauge-text" x="100" y="60" text-anchor="middle">0</text>
+                        </svg>
+                    </div>
+                    <div class="radar-container">
+                        <canvas id="radar-chart"></canvas>
+                    </div>
+                    <div class="explanation">
+                        <p id="modal-explanation"></p>
+                <div id="modal-readings"></div>
+                    </div>
+                </div>
+            </div>
+            <button class="save-img">Lưu ảnh</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>Nội dung mang tính tham khảo, giải trí · Tác giả: Việt Phan</p>
+    </footer>
+
+    <script src="data.js"></script>
+    <script src="readings.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
