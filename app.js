@@ -196,15 +196,19 @@ const Calc = {
         const e2 = e1 + 9;
         const e3 = e2 + 9;
 
+        const one = n => { while (n > 9) n = String(n).split('').reduce((a, b) => a + +b, 0); return n; };
+        const m = one(month), d = one(day), y = one(year);
+        const C1 = Math.abs(m - d), C2 = Math.abs(d - y), C3 = Math.abs(C1 - C2), C4 = Math.abs(m - y);
         return {
             P: [P1, P2, P3, P4],
+            C: [C1, C2, C3, C4],
             ends: [e1, e2, e3]
         };
     },
 
     // Calculate hành trình cuộc đời
     hanhTrinh: function(dateStr) {
-        const { P, ends } = this.dinhCao(dateStr);
+        const { P, C, ends } = this.dinhCao(dateStr);
         const stages = typeof STAGES !== 'undefined' ? STAGES : [
             { key: 'tuoiTho', label: 'Tuổi thơ', ages: '0–12', mid: 6, focus: 'tinhYeu' },
             { key: 'hocTro', label: 'Tuổi học trò', ages: '13–22', mid: 17, focus: 'suNghiep' },
@@ -213,17 +217,22 @@ const Calc = {
             { key: 'anNhan', label: 'An nhàn', ages: '51+', mid: 60, focus: 'taiLoc' }
         ];
 
-        return stages.map((stage, index) => {
+        const res = stages.map((stage, index) => {
             const n = stage.mid <= ends[0] ? 0 : stage.mid <= ends[1] ? 1 : stage.mid <= ends[2] ? 2 : 3;
             const number = P[n];
 
             return {
+                key: stage.key,
                 label: stage.label,
                 ages: stage.ages,
+                period: n + 1,
+                challenge: C[n],
                 focus: stage.focus,
                 number: number
             };
         });
+        res.e1 = ends[0];
+        return res;
     }
 };
 
@@ -585,12 +594,16 @@ if (typeof document !== 'undefined') {
                     <div class="chart-container">
                         <div style="position:relative;height:260px">${lifeChartCanvas.outerHTML}</div>
                     </div>
+                    <p class="journey-note" style="font-size:.85rem">Trục ngang là độ tuổi. Số 11, 22, 33 được vẽ thành 2, 4, 6. Thần số học chia đời người thành 4 chặng đỉnh cao. Chặng 1 kéo dài từ lúc sinh đến ${journey.e1} tuổi (36 trừ số chủ đạo), chặng 2 và 3 mỗi chặng 9 năm, chặng 4 đến cuối đời. Mỗi chặng có một số đỉnh cao (điều thuận lợi) và một số thử thách (bài học cần vượt qua). Dưới đây là 5 giai đoạn của con, ứng với chặng đang diễn ra ở giữa giai đoạn đó.</p>
                     <div class="journey-stages">
-                        ${journey.map(stage => `
+                        ${journey.map(st => { const t = (STAGE_TEXT[st.key] || {})[st.number] || ['', '']; return `
                             <div class="journey-stage">
-                                <h5>${stage.label} (${stage.ages} tuổi) – số ${stage.number}: ${PIN_TEXT[stage.number] || 'Không có giải thích'}</h5>
-                            </div>
-                        `).join('')}
+                                <h5>${st.label} (${st.ages} tuổi) · chặng ${st.period}</h5>
+                                <div class="journey-nums"><span class="jn-peak">Đỉnh cao: ${st.number}</span><span class="jn-chal">Thử thách: ${st.challenge}</span></div>
+                                <p>${t[0]}</p>
+                                <p><b>Bài học:</b> ${CHALLENGE_TEXT[st.challenge]}</p>
+                                <p class="journey-advice">💡 Lời khuyên cho bố mẹ: ${t[1]}</p>
+                            </div>`; }).join('')}
                     </div>
                 </div>
             `;
@@ -734,9 +747,9 @@ if (typeof document !== 'undefined') {
             lifeChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: journey.map(stage => `${stage.label} (${stage.ages})`),
+                    labels: journey.map(stage => stage.ages),
                     datasets: [{
-                        label: 'Đỉnh cao cuộc đời',
+                        label: 'Đỉnh cao',
                         data: chartData,
                         borderColor: '#ffd86f',
                         backgroundColor: (context) => {
@@ -749,6 +762,15 @@ if (typeof document !== 'undefined') {
                         borderWidth: 2,
                         fill: true,
                         tension: 0.4,
+                        pointRadius: 5
+                    }, {
+                        label: 'Thử thách',
+                        data: journey.map(st => st.challenge),
+                        borderColor: '#ff8fa3',
+                        borderDash: [6, 4],
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.3,
                         pointRadius: 5
                     }]
                 },
@@ -766,16 +788,17 @@ if (typeof document !== 'undefined') {
                         },
                         x: {
                             ticks: {
-                                color: '#fff'
+                                color: '#fff', maxRotation: 0, minRotation: 0, autoSkip: false, font: { size: 10 }
                             }
                         }
                     },
                     plugins: {
+                        legend: { labels: { color: '#fff' } },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
                                     const stage = journey[context.dataIndex];
-                                    return `${stage.label}: ${PIN_TEXT[stage.number] || 'Không có giải thích'}`;
+                                    return context.datasetIndex === 0 ? `Đỉnh cao: ${stage.number}` : `Thử thách: ${stage.challenge}`;
                                 }
                             }
                         }

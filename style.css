@@ -677,3 +677,12 @@ footer {
 .result-card .badge, .custom-badge { display:inline-block; font-size:.75rem; padding:2px 10px; border-radius:999px; background:linear-gradient(90deg,#ffd86f,#ff6fd8); color:#2a1747; font-weight:700; margin-bottom:.4rem; }
 .reading-section { background: rgba(15,12,41,0.55); color:#fff; border-left: 3px solid #ffd86f; border-radius: 12px; padding: .8rem 1rem; margin: .7rem 0; }
 .reading-section h4 { margin: 0 0 .35rem; color: #ffd86f; }
+.journey-note{font-size:.9rem;opacity:.9;margin:.6rem 0}
+.journey-stage{background:rgba(255,255,255,.08);border-radius:12px;padding:.8rem;margin:.7rem 0}
+.journey-stage h5{margin:0 0 .4rem;font-size:1rem}
+.journey-stage p{margin:.35rem 0;font-weight:400;line-height:1.5}
+.journey-nums{display:flex;gap:.5rem;flex-wrap:wrap}
+.journey-nums span{padding:.15rem .6rem;border-radius:999px;font-size:.85rem;font-weight:600}
+.jn-peak{background:#ffd86f;color:#333}.jn-chal{background:#ff8fa3;color:#333}
+.journey-advice{font-style:italic}
+@media (max-width:480px){.reading-section .chart-container{padding:.3rem;margin:0 -.4rem}}

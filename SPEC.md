@@ -63,3 +63,8 @@ Ví dụ 15/12/2026: M=3, D=6, Y=1 (2+0+2+6=10→1); P1=9, P2=7, P3=reduce(16)=7
 Calc.dinhCao(dateStr) → {P:[P1..P4], ends:[e1,e2,e3]}; Calc.hanhTrinh(dateStr) → mảng 5 {stage, ages, number}.
 Biểu đồ: Chart.js line có fill gradient, nhãn 5 giai đoạn, giá trị = số (vẽ 11/22/33 là 2/4/6), tooltip là câu ngắn.
 Lời giải mỗi giai đoạn lấy từ LIFE_TEXT[số][key] với key: tuoiTho (tính cách lúc nhỏ), hocTro (học hành), lapNghiep (sự nghiệp), truongThanh (tình yêu & gia đình), anNhan (tài lộc & cuộc sống về già, chỉ thói quen, không hứa giàu). Áp dụng cho cả tên gợi ý và tên tự nhập.
+
+## Hành trình chi tiết
+- Thử thách: m,d,y rút về 1 chữ số; C1=|m−d|, C2=|d−y|, C3=|C1−C2|, C4=|m−y| (0–8). Cùng chặng với đỉnh cao.
+- 5 giai đoạn x 12 số: nội dung riêng trong journey.js (STAGE_TEXT, CHALLENGE_TEXT), kèm lời khuyên cho bố mẹ.
+- Biểu đồ 2 đường: đỉnh cao, thử thách.
