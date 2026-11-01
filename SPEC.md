@@ -53,3 +53,13 @@ Global `const READINGS = { 1:{tinhYeu, suNghiep, taiLoc}, ..., 9, 11, 22, 33 }` 
 ## Năm 2027 của bạn
 Năm cá nhân 2027 = reduce(tổng chữ số ngày sinh + tháng sinh + 2+0+2+7). Tháng cá nhân m = reduce(năm cá nhân (rút về 1 chữ số) + m). Vẽ Chart.js line (hoặc bar) 12 tháng, trục y 1–9 (11→2, 22→4, 33→6 để vẽ), tooltip là MONTH_TEXT. Ví dụ ngày sinh 15/12: 1+5+1+2+2+0+2+7=20 → 2; tháng 1 → 3, tháng 7 → 9.
 Trong modal chi tiết: các mục "💕 Tình yêu", "💼 Sự nghiệp", "💰 Tài lộc", "📅 Năm 2027 của bạn" (YEAR_TEXT + biểu đồ #year-chart).
+
+## (THAY THẾ "Năm 2027") Hành trình cuộc đời – 4 đỉnh cao
+Bỏ hẳn mục Năm 2027 và biểu đồ year-chart. Rút gọn riêng tháng M, ngày D, năm Y (reduce, giữ 11/22/33 rồi dùng giá trị 1 chữ số khi cộng: 11→2, 22→4, 33→6).
+P1 = reduce(M + D); P2 = reduce(D + Y); P3 = reduce(P1 + P2); P4 = reduce(M + Y).
+Số chủ đạo L rút về 1 chữ số; P1 kết thúc ở tuổi 36 − L; P2 thêm 9 năm; P3 thêm 9 năm; P4 đến hết đời.
+Ví dụ 15/12/2026: M=3, D=6, Y=1 (2+0+2+6=10→1); P1=9, P2=7, P3=reduce(16)=7, P4=4; L=1 → P1 0–35, P2 36–44, P3 45–53, P4 54+.
+5 giai đoạn hiển thị: Tuổi thơ (0–12, tuổi giữa 6), Tuổi học trò (13–22, 17), Lập nghiệp (23–35, 29), Trưởng thành (36–50, 43), An nhàn (51+, 60). Số của giai đoạn = đỉnh cao đang chạy ở tuổi giữa.
+Calc.dinhCao(dateStr) → {P:[P1..P4], ends:[e1,e2,e3]}; Calc.hanhTrinh(dateStr) → mảng 5 {stage, ages, number}.
+Biểu đồ: Chart.js line có fill gradient, nhãn 5 giai đoạn, giá trị = số (vẽ 11/22/33 là 2/4/6), tooltip là câu ngắn.
+Lời giải mỗi giai đoạn lấy từ LIFE_TEXT[số][key] với key: tuoiTho (tính cách lúc nhỏ), hocTro (học hành), lapNghiep (sự nghiệp), truongThanh (tình yêu & gia đình), anNhan (tài lộc & cuộc sống về già, chỉ thói quen, không hứa giàu). Áp dụng cho cả tên gợi ý và tên tự nhập.

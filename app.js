@@ -179,24 +179,51 @@ const Calc = {
         return Math.max(55, Math.min(100, total));
     },
 
-    // Calculate năm cá nhân 2027
-    namCaNhan: function(dateStr, year) {
-        const [y, month, day] = dateStr.split('-').map(Number);
-        const sum = day.toString().split('').reduce((a, b) => a + Number(b), 0) +
-                   month.toString().split('').reduce((a, b) => a + Number(b), 0) +
-                   year.toString().split('').reduce((a, b) => a + Number(b), 0);
-        return this.reduce(sum);
+    // Calculate đỉnh cao cuộc đời
+    dinhCao: function(dateStr) {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const M = this.reduce(month);
+        const D = this.reduce(day);
+        const Y = this.reduce(year);
+
+        const P1 = this.reduce(M + D);
+        const P2 = this.reduce(D + Y);
+        const P3 = this.reduce(P1 + P2);
+        const P4 = this.reduce(M + Y);
+
+        const L = this.reduce(this.chuDao(dateStr));
+        const L1 = L === 11 ? 2 : L === 22 ? 4 : L === 33 ? 6 : L; const e1 = 36 - L1;
+        const e2 = e1 + 9;
+        const e3 = e2 + 9;
+
+        return {
+            P: [P1, P2, P3, P4],
+            ends: [e1, e2, e3]
+        };
     },
 
-    // Calculate tháng cá nhân
-    thangCaNhan: function(dateStr, year) {
-        const namCN = this.namCaNhan(dateStr, year);
-        const months = [];
-        for (let m = 1; m <= 12; m++) {
-            const monthValue = this.reduce(namCN + m);
-            months.push(monthValue);
-        }
-        return months;
+    // Calculate hành trình cuộc đời
+    hanhTrinh: function(dateStr) {
+        const { P, ends } = this.dinhCao(dateStr);
+        const stages = typeof STAGES !== 'undefined' ? STAGES : [
+            { key: 'tuoiTho', label: 'Tuổi thơ', ages: '0–12', mid: 6, focus: 'tinhYeu' },
+            { key: 'hocTro', label: 'Tuổi học trò', ages: '13–22', mid: 17, focus: 'suNghiep' },
+            { key: 'lapNghiep', label: 'Lập nghiệp', ages: '23–35', mid: 29, focus: 'taiLoc' },
+            { key: 'truongThanh', label: 'Trưởng thành', ages: '36–50', mid: 43, focus: 'tinhYeu' },
+            { key: 'anNhan', label: 'An nhàn', ages: '51+', mid: 60, focus: 'taiLoc' }
+        ];
+
+        return stages.map((stage, index) => {
+            const n = stage.mid <= ends[0] ? 0 : stage.mid <= ends[1] ? 1 : stage.mid <= ends[2] ? 2 : 3;
+            const number = P[n];
+
+            return {
+                label: stage.label,
+                ages: stage.ages,
+                focus: stage.focus,
+                number: number
+            };
+        });
     }
 };
 
@@ -230,6 +257,7 @@ if (typeof document !== 'undefined') {
         const btnGoiy = document.getElementById('btn-goiy');
         const btnMau = document.getElementById('btn-mau');
         const btnCompare = document.getElementById('btn-compare');
+        const btnPhanTich = document.getElementById('btn-phantich');
         const resultsContainer = document.getElementById('results');
         const favoritesContainer = document.getElementById('favorites');
         const noFavorites = document.getElementById('no-favorites');
@@ -238,13 +266,14 @@ if (typeof document !== 'undefined') {
         const saveImgBtn = document.querySelector('.save-img');
         const radarChartCanvas = document.getElementById('radar-chart');
         const compareChartCanvas = document.getElementById('compare-chart');
-        const yearChartCanvas = document.createElement('canvas');
-        yearChartCanvas.id = 'year-chart'; yearChartCanvas.style.height = '240px';
+        const lifeChartCanvas = document.createElement('canvas');
+        lifeChartCanvas.id = 'life-chart';
+        lifeChartCanvas.style.height = '240px';
 
         // Chart instances
         let radarChart = null;
         let compareChart = null;
-        let yearChart = null;
+        let lifeChart = null;
 
         // Initialize app
         init();
@@ -258,6 +287,7 @@ if (typeof document !== 'undefined') {
             btnGoiy.addEventListener('click', generateSuggestions);
             btnMau.addEventListener('click', fillSampleData);
             btnCompare.addEventListener('click', compareNames);
+            btnPhanTich.addEventListener('click', analyzeNames);
             closeModal.addEventListener('click', closeDetailModal);
             saveImgBtn.addEventListener('click', saveImage);
 
@@ -357,12 +387,84 @@ if (typeof document !== 'undefined') {
             return suggestions;
         }
 
+        // Analyze custom names
+        function analyzeNames() {
+            const namesInput = document.getElementById('ten-rieng').value.trim();
+            const dob = document.getElementById('dob').value;
+
+            if (!dob) {
+                alert('Vui lòng nhập ngày sinh/dự sinh của bé');
+                return;
+            }
+
+            if (!namesInput) {
+                alert('Vui lòng nhập tên bạn muốn phân tích');
+                return;
+            }
+
+            const names = namesInput.split(/[,\n]/)
+                .map(name => name.trim())
+                .filter(name => name.length > 0)
+                .slice(0, 3);
+
+            if (names.length === 0) {
+                alert('Vui lòng nhập ít nhất một tên');
+                return;
+            }
+
+            const chuDao = Calc.chuDao(dob);
+            const results = [];
+
+            names.forEach(name => {
+                // Capitalize each word
+                const fullName = name.split(' ')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                    .join(' ');
+
+                // Get parts
+                const parts = fullName.split(' ');
+                const ho = parts[0];
+                const dem = parts.length > 2 ? parts.slice(1, -1).join(' ') : '';
+                const ten = parts[parts.length - 1];
+
+                // Find meaning
+                const nameObj = NAMES.find(n => n.name === ten);
+                const meaning = nameObj ? nameObj.meaning : 'Tên do bố mẹ chọn, gửi gắm mong ước riêng của gia đình';
+
+                // Calculate criteria
+                const criteria = Calc.criteria({
+                    fullName,
+                    meaning
+                }, chuDao);
+                const score = Calc.total(criteria);
+
+                results.push({
+                    fullName,
+                    name: ten,
+                    dem,
+                    ho,
+                    meaning,
+                    score,
+                    criteria,
+                    isFavorite: isFavorite(fullName),
+                    custom: true
+                });
+            });
+
+            displayResults(results, document.getElementById('ten-rieng-results'));
+
+            // Auto-open first name
+            if (results.length > 0) {
+                showDetailModal(results[0]);
+            }
+        }
+
         // Display results
-        function displayResults(suggestions) {
-            resultsContainer.innerHTML = '';
+        function displayResults(suggestions, container = document.getElementById('results')) {
+            container.innerHTML = '';
 
             if (suggestions.length === 0) {
-                resultsContainer.innerHTML = '<p class="empty-state">Không tìm thấy tên phù hợp.</p>';
+                container.innerHTML = '<p class="empty-state">Không tìm thấy tên phù hợp.</p>';
                 return;
             }
 
@@ -374,6 +476,7 @@ if (typeof document !== 'undefined') {
                 card.innerHTML = `
                     <div class="card-header">
                         <h3>${suggestion.fullName}</h3>
+                        ${suggestion.custom ? '<span class="badge">Tên bạn chọn</span>' : ''}
                     </div>
                     <div class="card-body">
                         <p class="meaning">${suggestion.meaning}</p>
@@ -417,7 +520,7 @@ if (typeof document !== 'undefined') {
                     updateCompareButton();
                 });
 
-                resultsContainer.appendChild(card);
+                container.appendChild(card);
             });
         }
 
@@ -448,30 +551,52 @@ if (typeof document !== 'undefined') {
                 document.getElementById('modal-content').appendChild(readingsContainer);
             }
 
+            // Get life journey data
+            const dob = document.getElementById('dob').value;
+            const journey = Calc.hanhTrinh(dob);
+
             readingsContainer.innerHTML = `
                 <div class="reading-section">
-                    <h4>💕 Tình yêu</h4>
-                    <p>${readings.tinhYeu}</p>
+                    <h4>🌱 Bé là người thế nào</h4>
+                    <p>${readings.nguoi}</p>
                 </div>
                 <div class="reading-section">
-                    <h4>💼 Sự nghiệp</h4>
-                    <p>${readings.suNghiep}</p>
+                    <h4>📚 Học hành & năng khiếu</h4>
+                    <p>${readings.hocHanh}</p>
                 </div>
                 <div class="reading-section">
-                    <h4>💰 Tài lộc</h4>
-                    <p>${readings.taiLoc}</p>
+                    <h4>💼 Nghề nghiệp hợp</h4>
+                    <p>${readings.ngheNghiep}</p>
                 </div>
                 <div class="reading-section">
-                    <h4>📅 Năm 2027 của bạn</h4>
-                    <p>${YEAR_TEXT[Calc.namCaNhan(document.getElementById('dob').value, 2027)]}</p>
+                    <h4>💕 Tình cảm</h4>
+                    <p>${readings.tinhCam}</p>
+                </div>
+                <div class="reading-section">
+                    <h4>💰 Tiền bạc</h4>
+                    <p>${readings.tienBac}</p>
+                </div>
+                <div class="reading-section">
+                    <h4>👨‍👩‍👧 Lời khuyên cho bố mẹ</h4>
+                    <p>${readings.loiKhuyen}</p>
+                </div>
+                <div class="reading-section">
+                    <h4>🛤️ Hành trình cuộc đời</h4>
                     <div class="chart-container">
-                        ${yearChartCanvas.outerHTML}
+                        <div style="position:relative;height:260px">${lifeChartCanvas.outerHTML}</div>
+                    </div>
+                    <div class="journey-stages">
+                        ${journey.map(stage => `
+                            <div class="journey-stage">
+                                <h5>${stage.label} (${stage.ages} tuổi) – số ${stage.number}: ${PIN_TEXT[stage.number] || 'Không có giải thích'}</h5>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
             `;
 
-            // Create year chart
-            createYearChart(suggestion);
+            // Create life chart
+            createLifeChart(suggestion);
 
             // Show modal
             modal.style.display = 'block';
@@ -587,38 +712,38 @@ if (typeof document !== 'undefined') {
             });
         }
 
-        // Create year chart
-        function createYearChart(suggestion) {
+        // Create life chart
+        function createLifeChart(suggestion) {
             // Destroy previous chart if exists
-            if (yearChart) {
-                yearChart.destroy();
+            if (lifeChart) {
+                lifeChart.destroy();
             }
 
             const dob = document.getElementById('dob').value;
-            const months = Calc.thangCaNhan(dob, 2027);
+            const journey = Calc.hanhTrinh(dob);
 
             // Convert 11→2, 22→4, 33→6 for chart display
-            const chartData = months.map(m => {
-                if (m === 11) return 2;
-                if (m === 22) return 4;
-                if (m === 33) return 6;
-                return m;
+            const chartData = journey.map(stage => {
+                if (stage.number === 11) return 2;
+                if (stage.number === 22) return 4;
+                if (stage.number === 33) return 6;
+                return stage.number;
             });
 
-            const ctx = document.getElementById('year-chart').getContext('2d');
-            yearChart = new Chart(ctx, {
+            const ctx = document.getElementById('life-chart').getContext('2d');
+            lifeChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+                    labels: journey.map(stage => `${stage.label} (${stage.ages})`),
                     datasets: [{
-                        label: 'Năng lượng tháng',
+                        label: 'Đỉnh cao cuộc đời',
                         data: chartData,
                         borderColor: '#ffd86f',
                         backgroundColor: (context) => {
                             const ctx = context.chart.ctx;
                             const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-                            gradient.addColorStop(0, 'rgba(255, 192, 203, 0.5)');
-                            gradient.addColorStop(1, 'rgba(255, 192, 203, 0)');
+                            gradient.addColorStop(0, 'rgba(255, 215, 0, 0.5)');
+                            gradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
                             return gradient;
                         },
                         borderWidth: 2,
@@ -628,7 +753,7 @@ if (typeof document !== 'undefined') {
                     }]
                 },
                 options: {
-                    responsive: true,
+                    responsive: true, maintainAspectRatio: false,
                     scales: {
                         y: {
                             beginAtZero: false,
@@ -649,8 +774,8 @@ if (typeof document !== 'undefined') {
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    const month = context.dataIndex + 1;
-                                    return MONTH_TEXT[months[context.dataIndex]] || `Tháng ${month}`;
+                                    const stage = journey[context.dataIndex];
+                                    return `${stage.label}: ${PIN_TEXT[stage.number] || 'Không có giải thích'}`;
                                 }
                             }
                         }
@@ -662,9 +787,9 @@ if (typeof document !== 'undefined') {
         // Close detail modal
         function closeDetailModal() {
             modal.style.display = 'none';
-            if (yearChart) {
-                yearChart.destroy();
-                yearChart = null;
+            if (lifeChart) {
+                lifeChart.destroy();
+                lifeChart = null;
             }
         }
 
@@ -677,7 +802,7 @@ if (typeof document !== 'undefined') {
             const readings = READINGS[suMenh] || READINGS[1];
             const loveLine = document.createElement('p');
             loveLine.className = 'love-line';
-            loveLine.textContent = `💕 ${readings.tinhYeu}`;
+            loveLine.textContent = `💕 ${readings.tinhCam}`;
             shareCard.appendChild(loveLine);
 
             html2canvas(shareCard, {
