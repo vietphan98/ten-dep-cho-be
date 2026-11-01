@@ -549,8 +549,7 @@ if (typeof document !== 'undefined') {
             createRadarChart(suggestion);
 
             // Add readings sections
-            const suMenh = Calc.suMenh(suggestion.fullName);
-            const readings = READINGS[suMenh] || READINGS[1];
+            const readings = buildReadings(document.getElementById('dob').value, suggestion.fullName);
 
             // Create readings container if not exists
             let readingsContainer = document.getElementById('modal-readings');
@@ -821,8 +820,7 @@ if (typeof document !== 'undefined') {
             const shareCard = document.getElementById('share-card');
 
             // Add short love reading to share card
-            const suMenh = Calc.suMenh(document.getElementById('modal-name').textContent);
-            const readings = READINGS[suMenh] || READINGS[1];
+            const readings = buildReadings(document.getElementById('dob').value, document.getElementById('modal-name').textContent);
             const loveLine = document.createElement('p');
             loveLine.className = 'love-line';
             loveLine.textContent = `💕 ${readings.tinhCam}`;
